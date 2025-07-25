@@ -1,3 +1,9 @@
 .venv
 .idea
+**/__pycache__
+**/*.pyc
+
 infra/postgres_data
+infra/redis/redis_data
+
+src/app/migrations
