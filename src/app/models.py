@@ -39,7 +39,7 @@ class User(AbstractBaseUser):
         validators=[invite_code_validator]
     )
     activated_code = models.CharField(
-        max_length=6, unique=True,
+        max_length=6, unique=False,
         null=True, validators=[invite_code_validator]
     )
 

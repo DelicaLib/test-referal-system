@@ -8,3 +8,7 @@ class ErrorResponse(serializers.Serializer):
 
 class MessageResponse(serializers.Serializer):
     message = serializers.CharField()
+
+class PaginationSerializer(serializers.Serializer):
+    page = serializers.IntegerField(min_value=1, default=1)
+    page_size = serializers.IntegerField(min_value=1, max_value=100, default=20)
