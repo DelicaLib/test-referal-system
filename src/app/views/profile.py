@@ -81,7 +81,7 @@ class ProfileViewSet(viewsets.ViewSet):
         if user.activated_code is not None:
             return Response({"detail": {"message": "У вас уже активирован код"}}, status=status.HTTP_400_BAD_REQUEST)
         if User.objects.filter(invite_code=invite_code).first() is None:
-            return Response({"detail": {"message": "Неdth код"}}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": {"message": "Неизвестный код"}}, status=status.HTTP_400_BAD_REQUEST)
         if user.invite_code == invite_code:
             return Response({"detail": {"message": "Вы не можете ввести свой реферальный код"}}, status=status.HTTP_400_BAD_REQUEST)
         user.activated_code = invite_code
