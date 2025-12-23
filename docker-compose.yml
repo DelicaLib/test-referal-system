@@ -2,11 +2,106 @@ services:
   web:
     build: .
     container_name: django_app
+    restart: unless-stopped
     volumes:
       - .:/app
+    environment:
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: >
+      gunicorn referal_system.wsgi:application
+      --bind 0.0.0.0:8000
+      --workers 3
+      --threads 2
+      --timeout 30
+      --access-logfile -
+      --error-logfile -
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "8080:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - type: volume
+        source: postgres
+        target: /var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - backend
+
+  redis:
+    build:
+      context: ./infra/redis
+      args:
+        REDIS_PASSWORD: ${REDIS_PASSWORD}
+        REDIS_USER: ${REDIS_USER}
+        REDIS_USER_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis:/data
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    build: .
+    environment:
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: python manage.py migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+volumes:
+  postgres:
+    driver: local
+  redis:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
