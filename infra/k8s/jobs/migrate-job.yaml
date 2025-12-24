@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+  namespace: danila-nikonov-1304
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrate
+        image: delicalib/referral-system:latest
+        envFrom:
+          - secretRef:
+              name: app-secrets
+        command: ["python", "manage.py", "migrate"]
+      restartPolicy: OnFailure

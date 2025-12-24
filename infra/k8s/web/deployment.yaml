@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: danila-nikonov-1304
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: delicalib/referral-system:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          command:
+            - gunicorn
+            - referal_system.wsgi:application
+            - "--bind=0.0.0.0:8000"
+            - "--workers=3"
+            - "--threads=2"
+            - "--timeout=30"
+          readinessProbe:
+            httpGet:
+              path: /api/docs
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
