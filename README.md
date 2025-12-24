@@ -9,18 +9,12 @@
 
 ## Как запустить
 1. Установить docker и docker-compose
-2. Перейти в infra и запустить docker-compose, благодаря чему запустятся postgresql и redis
+2. Запустить django проект, postgres и redis
 ```bash
-cd infra
-docker-compose up -d
-```
-3. Перейти на директорию выше и запустить сам django проект
-```bash
-cd ..
 docker-compose up -d
 ```
 
-После этих шагов приложение будет доступно по порту 8000.
+После этих шагов приложение будет доступно по порту 8080.
 
 
 ## Описание API
